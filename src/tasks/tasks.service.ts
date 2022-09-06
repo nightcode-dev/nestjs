@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTaskDto } from './DTO/create-tasks.dto';
+import { FilterTasksDto } from './DTO/filter-tasks.dto';
 import { UpdateTaskDto } from './DTO/update-task.dto';
 import { TaskStatus } from './task-status.enum';
 import { Tasks } from './tasks.entity';
@@ -9,6 +10,23 @@ import { Tasks } from './tasks.entity';
 @Injectable()
 export class TasksService {
   constructor(@InjectRepository(Tasks) private taskRepo: Repository<Tasks>) {}
+
+  async getTasks(filterTasksDto: FilterTasksDto): Promise<Tasks[]> {
+    const { status, title } = filterTasksDto;
+    const query = this.taskRepo.createQueryBuilder('tasks');
+    if (status) {
+      query.andWhere('tasks.status = :status', { status });
+    }
+
+    if (title) {
+      query.andWhere('LOWER(tasks.title) LIKE LOWER(:title)', {
+        title: `%${title}%`,
+      });
+    }
+
+    const tasks = await query.getMany();
+    return tasks;
+  }
   async getTaskById(id: string): Promise<Tasks> {
     const found = await this.taskRepo.findOne({
       where: {
