@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './DTO/create-user.dto';
@@ -28,5 +28,20 @@ export class AuthService {
         throw new InternalServerErrorException()
       }
     }
+  }
+
+  async signin(createUserDto:CreateUserDto):Promise<string>{
+    const {username,password} = createUserDto
+    const user = await this.authRepo.findOne({
+      where:{
+        username
+      }
+    })
+    if(user && (await bcyrpt.compare(password,user.password))){
+      return 'sucess'
+    } else {
+      throw new UnauthorizedException('are you sure?i cant find any user with this username and password')
+    }
+
   }
 }
