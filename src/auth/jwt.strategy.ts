@@ -13,7 +13,7 @@ export class jwtStrategy extends PassportStrategy(Strategy){
     ){
         super({
             secretOrKey:"safePassword",
-            jwtFromRequest:ExtractJwt.fromAuthHeaderAsBearerToken()
+            jwtFromRequest:ExtractJwt.fromAuthHeaderAsBearerToken(),
         })
     }
 
@@ -24,7 +24,8 @@ export class jwtStrategy extends PassportStrategy(Strategy){
                 username
             }
         })
-
+        console.log(username)
+        console.log(user)
         if(!user){
             throw new UnauthorizedException()
         }
