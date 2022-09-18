@@ -24,8 +24,8 @@ export class TasksController {
   constructor(private taskService: TasksService) {}
 
   @Get()
-  getTasks(@Query() filterTaskDto: FilterTasksDto): Promise<Tasks[]> {
-    return this.taskService.getTasks(filterTaskDto);
+  getTasks(@Query() filterTaskDto: FilterTasksDto,@GetUser() user:User): Promise<Tasks[]> {
+    return this.taskService.getTasks(filterTaskDto,user);
   }
 
   @Get(':id')
