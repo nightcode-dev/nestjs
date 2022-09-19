@@ -12,10 +12,10 @@ import { Tasks } from './tasks.entity';
 export class TasksService {
   constructor(@InjectRepository(Tasks) private taskRepo: Repository<Tasks>) {}
 
-  async getTasks(filterTasksDto: FilterTasksDto,user:User): Promise<Tasks[]> {
+  async getTasks(filterTasksDto: FilterTasksDto, user: User): Promise<Tasks[]> {
     const { status, title } = filterTasksDto;
     const query = this.taskRepo.createQueryBuilder('tasks');
-    query.where({user})
+    query.where({ user });
     if (status) {
       query.andWhere('tasks.status = :status', { status });
     }
@@ -29,10 +29,11 @@ export class TasksService {
     const tasks = await query.getMany();
     return tasks;
   }
-  async getTaskById(id: string): Promise<Tasks> {
+  async getTaskById(id: string, user: User): Promise<Tasks> {
     const found = await this.taskRepo.findOne({
       where: {
-        id: id,
+        id,
+        user,
       },
     });
     if (!found) {
@@ -44,13 +45,13 @@ export class TasksService {
     return found;
   }
 
-  async createTask(createTaskDto: CreateTaskDto,user:User): Promise<Tasks> {
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Tasks> {
     const { title, description } = createTaskDto;
     const task = this.taskRepo.create({
       title,
       description,
       status: TaskStatus.OPEN,
-      user
+      user,
     });
 
     await this.taskRepo.save(task);
@@ -58,8 +59,8 @@ export class TasksService {
     return task;
   }
 
-  async deleteTask(id: string): Promise<void> {
-    const result = await this.taskRepo.delete(id);
+  async deleteTask(id: string, user: User): Promise<void> {
+    const result = await this.taskRepo.delete({ id, user });
     if (result.affected === 0) {
       throw new NotFoundException(
         `are you sure?i cant found any task with ${id} id.`,
@@ -67,9 +68,13 @@ export class TasksService {
     }
   }
 
-  async updateTask(id: string, updateTaskDto: UpdateTaskDto): Promise<Tasks> {
+  async updateTask(
+    id: string,
+    updateTaskDto: UpdateTaskDto,
+    user: User,
+  ): Promise<Tasks> {
     const { status } = updateTaskDto;
-    var obj = await this.getTaskById(id);
+    var obj = await this.getTaskById(id, user);
     obj.status = status;
     await this.taskRepo.save(obj);
     return obj;
